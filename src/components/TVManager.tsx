@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Video, Channel } from '@/types';
 import { VideoPlayerTV } from './VideoPlayerTV';
 import {
-    VideoOff, Volume2, VolumeX, Heart,
+    VideoOff, Volume2, VolumeX, Heart, Share2,
     SkipBack, SkipForward, Play, Pause, RotateCcw, List as ListIcon, X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -24,7 +24,6 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
     const router = useRouter();
 
     // --- State ---
-    // Playlist logic: redundant list if too short to simulate infinite scroll
     const [playlist, setPlaylist] = useState<Video[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -37,7 +36,7 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
     const [showControls, setShowControls] = useState(false);
     const [isHoveringControls, setIsHoveringControls] = useState(false);
     const [showChannelList, setShowChannelList] = useState(false);
-    const [direction, setDirection] = useState(0); // 1 = Next (Slide Up), -1 = Prev (Slide Down)
+    const [direction, setDirection] = useState(0);
 
     // Analytics
     const [hasLiked, setHasLiked] = useState(false);
@@ -45,7 +44,6 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
     // Init Playlist
     useEffect(() => {
         if (!videos || videos.length === 0) return;
-        // Create a "Virtual Playlist" of at least 10 items if possible
         let newPlaylist = [...videos];
         if (newPlaylist.length > 0 && newPlaylist.length < 5) {
             while (newPlaylist.length < 10) {
@@ -74,6 +72,17 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
             return () => clearTimeout(timer);
         }
     }, [currentIndex, hasInteracted, currentVideo, currentChannel.id]);
+
+    // Fullscreen Logging
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            const isFullscreen = !!document.fullscreenElement;
+            if (isFullscreen) logEvent('fullscreen_on', currentVideo?.id || 'unknown', currentChannel.id);
+            else logEvent('fullscreen_off', currentVideo?.id || 'unknown', currentChannel.id);
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, [currentChannel.id, currentVideo]);
 
     // --- Activity & Controls ---
     const resetControlsTimer = useCallback(() => {
@@ -106,13 +115,13 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
     // --- Navigation Logic ---
     const playNext = useCallback(() => {
         if (playlist.length === 0) return;
-        setDirection(1); // Slide Up
+        setDirection(1);
         setCurrentIndex((prev) => (prev + 1) % playlist.length);
     }, [playlist.length]);
 
     const playPrev = useCallback(() => {
         if (playlist.length === 0) return;
-        setDirection(-1); // Slide Down
+        setDirection(-1);
         setCurrentIndex((prev) => (prev - 1 + playlist.length) % playlist.length);
     }, [playlist.length]);
 
@@ -120,6 +129,31 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
         e.stopPropagation();
         setHasLiked(true);
         if (currentVideo) logEvent('like', currentVideo.id, currentChannel.id);
+    };
+
+    const handleShare = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const url = window.location.href;
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `HIFLIX: ${currentVideo.title}`,
+                    text: `Watching ${currentVideo.title} on ${currentChannel.name}`,
+                    url: url
+                });
+                logEvent('share_native', currentVideo.id, currentChannel.id);
+            } catch (err) {
+                console.log("Share cancelled or failed", err);
+            }
+        } else {
+            try {
+                await navigator.clipboard.writeText(url);
+                alert("Link copied to clipboard!"); // Simple feedback for now
+                logEvent('share_clipboard', currentVideo.id, currentChannel.id);
+            } catch (err) {
+                console.error("Clipboard failed", err);
+            }
+        }
     };
 
     const replayVideo = () => {
@@ -134,14 +168,12 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
     // --- Gestures (Drag) ---
     const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const { offset, velocity } = info;
-        const swipeThreshold = 80; // px
-        const velocityThreshold = 800; // px/s
+        const swipeThreshold = 80;
+        const velocityThreshold = 800;
 
-        // Drag DOWN (positive Y) -> Next Video
         if (offset.y > swipeThreshold || velocity.y > velocityThreshold) {
             playNext();
         }
-        // Drag UP (negative Y) -> Prev Video
         else if (offset.y < -swipeThreshold || velocity.y < -velocityThreshold) {
             playPrev();
         }
@@ -198,11 +230,20 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
     }, [hasInteracted, playNext, playPrev, handleUserActivity]);
 
 
-    const handleStart = () => {
+    const handleStart = async () => {
         setHasInteracted(true);
         setIsMuted(false);
         setIsPlaying(true);
         handleUserActivity();
+
+        // Cinema Mode Auto-Trigger
+        try {
+            if (!document.fullscreenElement) {
+                await document.documentElement.requestFullscreen();
+            }
+        } catch (err) {
+            console.warn("Fullscreen auto-trigger failed (likely blocked by browser)", err);
+        }
     };
 
     const handleChannelSwitch = (slug: string) => {
@@ -211,7 +252,6 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
     };
 
     if (!currentVideo) {
-        // Offline State
         return (
             <div className="w-screen h-screen bg-black flex flex-col items-center justify-center space-y-6 text-white text-center p-6">
                 <div className="w-20 h-20 rounded-full bg-neutral-900 flex items-center justify-center mb-2 animate-pulse">
@@ -225,13 +265,9 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
         )
     }
 
-    // Animation Variants
     const variants = {
         enter: (d: number) => ({
-            y: d > 0 ? '-100%' : '100%', // If next (d=1), new comes from top (-100%). Wait, Drag Down = Next?
-            // "Drag Down" means I pull the screen down. The NEW video usually comes from the TOP.
-            // Let's visual: Current video moves DOWN (exit). New video moves DOWN (enter).
-            // Enter should start at -100% (top) and move to 0.
+            y: d > 0 ? '-100%' : '100%',
             opacity: 1
         }),
         center: {
@@ -239,9 +275,8 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
             opacity: 1
         },
         exit: (d: number) => ({
-            // If going next (d=1), current video moves DOWN (positive 100%)
             y: d > 0 ? '100%' : '-100%',
-            opacity: 1 // Keep opacity 1 for solid slide effect
+            opacity: 1
         })
     };
 
@@ -299,7 +334,7 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
                 </div>
             )}
 
-            {/* INFO OVERLAY (Top Left) */}
+            {/* INFO OVERLAY */}
             <AnimatePresence>
                 {(showControls && hasInteracted) && (
                     <motion.div
@@ -316,7 +351,7 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
                 )}
             </AnimatePresence>
 
-            {/* INFO OVERLAY (Top Right Icon) */}
+            {/* LOGO */}
             <div className="absolute top-8 right-8 z-30 opacity-50 pointer-events-none mix-blend-screen w-24 h-8">
                 <Image
                     src="/logos/Hiflix-logo.svg"
@@ -326,7 +361,7 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
                 />
             </div>
 
-            {/* CHANNEL PICKER OVERLAY */}
+            {/* CHANNEL PICKER */}
             <AnimatePresence>
                 {showChannelList && (
                     <motion.div
@@ -397,8 +432,17 @@ export function TVManager({ videos, channel: currentChannel, allChannels }: TVMa
                                 <button onClick={replayVideo} className="p-2 md:p-3 hover:bg-white/10 rounded-full text-white/80 hover:text-white transition-colors" title="Replay">
                                     <RotateCcw className="w-5 h-5 md:w-5 md:h-5" />
                                 </button>
-                                <button onClick={handleLike} className={cn("p-2 md:p-3 hover:bg-white/10 rounded-full transition-colors", hasLiked ? "text-red-500" : "text-white/80 hover:text-white")} title="Like">
+                                <motion.button
+                                    onClick={handleLike}
+                                    whileTap={{ scale: 0.8 }}
+                                    animate={hasLiked ? { scale: [1, 1.2, 1] } : {}}
+                                    className={cn("p-2 md:p-3 hover:bg-white/10 rounded-full transition-colors", hasLiked ? "text-red-500" : "text-white/80 hover:text-white")}
+                                    title="Like"
+                                >
                                     <Heart className={cn("w-5 h-5 md:w-5 md:h-5", hasLiked && "fill-current")} />
+                                </motion.button>
+                                <button onClick={handleShare} className="p-2 md:p-3 hover:bg-white/10 rounded-full text-white/80 hover:text-white transition-colors" title="Share">
+                                    <Share2 className="w-5 h-5 md:w-5 md:h-5" />
                                 </button>
                                 <button onClick={() => setIsMuted(!isMuted)} className="p-2 md:p-3 hover:bg-white/10 rounded-full text-white/80 hover:text-white transition-colors">
                                     {isMuted ? <VolumeX className="w-5 h-5 md:w-5 md:h-5" /> : <Volume2 className="w-5 h-5 md:w-5 md:h-5" />}

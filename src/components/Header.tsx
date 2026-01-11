@@ -14,9 +14,6 @@ export function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const pathname = usePathname();
 
-    // Hide header on TV pages
-    if (pathname?.startsWith("/tv/")) return null;
-
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 20);
@@ -25,8 +22,12 @@ export function Header() {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
+    // Hide header on TV pages
+    if (pathname?.startsWith("/tv/")) return null;
+
     const navLinks = [
         { name: "Channels", href: "/#channels" },
+        { name: "Product", href: "/product" },
         { name: "About", href: "/about" },
         { name: "Contact", href: "/contact" },
     ];

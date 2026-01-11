@@ -42,8 +42,8 @@ export function ChannelCard({ channel, className, index = 0 }: ChannelCardProps)
             <Link
                 href={`/tv/${channel.slug}`}
                 className={cn(
-                    "group relative block aspect-video overflow-hidden rounded-xl bg-neutral-900",
-                    "ring-1 ring-white/10 hover:ring-2 hover:ring-white/50 transition-all duration-500",
+                    "group relative block aspect-video overflow-hidden rounded-xl bg-neutral-900 border border-white/10 md:border-0 md:ring-1 md:ring-white/10",
+                    "hover:ring-2 hover:ring-white/50 transition-all duration-500",
                     "hover:shadow-[0_0_30px_rgba(255,255,255,0.15)]", // Glow effect
                     "transform-gpu", // Hardware acceleration
                     className

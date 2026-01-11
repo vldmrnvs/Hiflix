@@ -85,7 +85,7 @@ export function Hero({ channel }: { channel: Channel }) {
                 <motion.div
                     className="absolute bottom-[-15vh] left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
                     initial={{ opacity: 0 }}
-                    animate={{ opacity: 1, y: [0, 10, 0] }}
+                    animate={{ opacity: [0, 1, 0], y: [0, 15] }}
                     transition={{ delay: 1.5, duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 >
                     <span className="text-[10px] tracking-[0.3em] text-neutral-500 uppercase">Scroll to Discover</span>

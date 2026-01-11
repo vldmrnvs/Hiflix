@@ -10,6 +10,7 @@ export const MOCK_CHANNELS: Channel[] = [
         preview_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
         order: 1,
         is_featured: true,
+        type: 'global',
         created_at: new Date().toISOString()
     },
     {
@@ -21,6 +22,7 @@ export const MOCK_CHANNELS: Channel[] = [
         preview_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
         order: 2,
         is_featured: false,
+        type: 'global',
         created_at: new Date().toISOString()
     },
     {
@@ -32,6 +34,7 @@ export const MOCK_CHANNELS: Channel[] = [
         preview_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
         order: 3,
         is_featured: false,
+        type: 'global',
         created_at: new Date().toISOString()
     },
     {
@@ -43,6 +46,7 @@ export const MOCK_CHANNELS: Channel[] = [
         preview_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
         order: 4,
         is_featured: false,
+        type: 'global',
         created_at: new Date().toISOString()
     },
     {
@@ -54,6 +58,7 @@ export const MOCK_CHANNELS: Channel[] = [
         preview_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
         order: 5,
         is_featured: false,
+        type: 'global',
         created_at: new Date().toISOString()
     },
     {
@@ -65,6 +70,7 @@ export const MOCK_CHANNELS: Channel[] = [
         preview_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
         order: 6,
         is_featured: false,
+        type: 'global',
         created_at: new Date().toISOString()
     },
     {
@@ -75,6 +81,7 @@ export const MOCK_CHANNELS: Channel[] = [
         cover_url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070&auto=format&fit=crop',
         order: 7,
         is_featured: false,
+        type: 'global',
         created_at: new Date().toISOString()
     },
     {
@@ -85,6 +92,7 @@ export const MOCK_CHANNELS: Channel[] = [
         cover_url: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=2070&auto=format&fit=crop', // Reusing retro feel
         order: 8,
         is_featured: false,
+        type: 'global',
         created_at: new Date().toISOString()
     },
     {
@@ -95,6 +103,7 @@ export const MOCK_CHANNELS: Channel[] = [
         cover_url: 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=2070&auto=format&fit=crop',
         order: 9,
         is_featured: false,
+        type: 'global',
         created_at: new Date().toISOString()
     },
     {
@@ -105,6 +114,7 @@ export const MOCK_CHANNELS: Channel[] = [
         cover_url: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2070&auto=format&fit=crop',
         order: 10,
         is_featured: false,
+        type: 'global',
         created_at: new Date().toISOString()
     },
     {
@@ -115,6 +125,7 @@ export const MOCK_CHANNELS: Channel[] = [
         cover_url: 'https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?q=80&w=2070&auto=format&fit=crop', // Replaced
         order: 11,
         is_featured: false,
+        type: 'global',
         created_at: new Date().toISOString()
     },
     {
@@ -125,6 +136,7 @@ export const MOCK_CHANNELS: Channel[] = [
         cover_url: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=1974&auto=format&fit=crop',
         order: 12,
         is_featured: false,
+        type: 'global',
         created_at: new Date().toISOString()
     }
 ];

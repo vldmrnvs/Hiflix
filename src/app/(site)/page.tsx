@@ -3,6 +3,9 @@ import { ChannelCard } from "@/components/ChannelCard";
 import { Channel } from "@/types";
 import { MOCK_CHANNELS } from "@/lib/mockData";
 import { Hero } from "@/components/Hero";
+import { HowItWorks } from "@/components/landing/HowItWorks";
+import { Benefits } from "@/components/landing/Benefits";
+import { Pricing } from "@/components/landing/Pricing";
 import Image from "next/image";
 
 export const revalidate = 60;
@@ -55,6 +58,10 @@ export default async function Home() {
                     ))}
                 </div>
             </div>
+
+            <HowItWorks />
+            <Benefits />
+            <Pricing />
         </main>
     );
 }
